@@ -10,3 +10,6 @@
 [submodule "dependencies/incbin"]
 	path = dependencies/incbin
 	url = git@github.com:graphitemaster/incbin.git
+[submodule "dependencies/rapidjson"]
+	path = dependencies/rapidjson
+	url = git@github.com:Tencent/rapidjson.git

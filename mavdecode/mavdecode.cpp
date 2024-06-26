@@ -26,7 +26,22 @@ namespace {
     }
 }
 
-std::string jsonStringifyNativeType(const mav::NativeVariantType value) {
+template<typename T>
+std::string jsonStringifyFloating(const T &arg) {
+    std::stringstream ss;
+    if (std::isnan(arg)) {
+        ss << "\"NaN\""; // JSON does not support NaN, so we print it as a string
+    } else if (std::isinf(arg) && arg > 0) {
+        ss << "\"Infinity\""; // JSON does not support Infinity, so we print it as a string
+    } else if (std::isinf(arg) && arg < 0) {
+        ss << "\"-Infinity\""; // JSON does not support -Infinity, so we print it as a string
+    } else {
+        ss << arg;
+    }
+    return ss.str();
+}
+
+std::string jsonStringifyNativeType(const mav::NativeVariantType &value) {
     std::stringstream ss;
     std::visit([&ss](auto&& arg) {
         if constexpr (mav::is_string<decltype(arg)>::value) {
@@ -35,21 +50,13 @@ std::string jsonStringifyNativeType(const mav::NativeVariantType value) {
             // static cast to int to avoid printing as a char
             ss << static_cast<int>(arg);
         } else if constexpr (mav::is_any<std::decay_t<decltype(arg)>, float, double>::value) {
-            if (std::isnan(arg)) {
-                ss << "\"NaN\""; // JSON does not support NaN, so we print it as a string
-            } else if (std::isinf(arg) && arg > 0) {
-                ss << "\"Infinity\""; // JSON does not support Infinity, so we print it as a string
-            } else if (std::isinf(arg) && arg < 0) {
-                ss << "\"-Infinity\""; // JSON does not support -Infinity, so we print it as a string
-            } else {
-                ss << arg;
-            }
+            ss << jsonStringifyFloating(arg);
         } else if constexpr (mav::is_iterable<decltype(arg)>::value) {
             ss << "[";
             for (auto it = arg.begin(); it != arg.end(); it++) {
                 if (it != arg.begin())
                     ss << ", ";
-                ss << *it;
+                ss << jsonStringifyFloating(*it);
             }
             ss << "]";
         } else {
@@ -64,6 +71,9 @@ std::string messageAsJson(const mav::Message &message) {
     ss << "{";
     ss << "\"id\": " << message.id() << ", ";
     ss << "\"name\": \"" << message.name() << "\", ";
+    ss << "\"system_id\": " << static_cast<int>(message.header().systemId()) << ", ";
+    ss << "\"component_id\": " << static_cast<int>(message.header().componentId()) << ", ";
+    ss << "\"seq\": " << static_cast<int>(message.header().isSigned()) << ", ";
     ss << "\"fields\": { ";
     for (const auto &field : message.type().fieldNames()) {
         ss << "\"" << field << "\":";
