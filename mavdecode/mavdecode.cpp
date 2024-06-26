@@ -27,18 +27,25 @@ namespace {
 }
 
 template<typename T>
-std::string jsonStringifyFloating(const T &arg) {
-    std::stringstream ss;
-    if (std::isnan(arg)) {
-        ss << "\"NaN\""; // JSON does not support NaN, so we print it as a string
-    } else if (std::isinf(arg) && arg > 0) {
-        ss << "\"Infinity\""; // JSON does not support Infinity, so we print it as a string
-    } else if (std::isinf(arg) && arg < 0) {
-        ss << "\"-Infinity\""; // JSON does not support -Infinity, so we print it as a string
+std::string jsonStringifyNumber(const T &arg) {
+    if constexpr (std::is_floating_point<T>::value) {
+        std::stringstream ss;
+        if (std::isnan(arg)) {
+            ss << "\"NaN\""; // JSON does not support NaN, so we print it as a string
+        } else if (std::isinf(arg) && arg > 0) {
+            ss << "\"Infinity\""; // JSON does not support Infinity, so we print it as a string
+        } else if (std::isinf(arg) && arg < 0) {
+            ss << "\"-Infinity\""; // JSON does not support -Infinity, so we print it as a string
+        } else {
+            ss << arg;
+        }
+        return ss.str();
+    } else if constexpr (mav::is_any<std::decay_t<T>, uint8_t, int8_t>::value) {
+        // static cast to int to avoid printing as a char
+        return std::to_string(static_cast<int>(arg));
     } else {
-        ss << arg;
+        return std::to_string(arg);
     }
-    return ss.str();
 }
 
 std::string jsonStringifyNativeType(const mav::NativeVariantType &value) {
@@ -46,21 +53,16 @@ std::string jsonStringifyNativeType(const mav::NativeVariantType &value) {
     std::visit([&ss](auto&& arg) {
         if constexpr (mav::is_string<decltype(arg)>::value) {
             ss << "\"" << arg << "\"";
-        } else if constexpr (mav::is_any<std::decay_t<decltype(arg)>, uint8_t, int8_t>::value) {
-            // static cast to int to avoid printing as a char
-            ss << static_cast<int>(arg);
-        } else if constexpr (mav::is_any<std::decay_t<decltype(arg)>, float, double>::value) {
-            ss << jsonStringifyFloating(arg);
         } else if constexpr (mav::is_iterable<decltype(arg)>::value) {
             ss << "[";
             for (auto it = arg.begin(); it != arg.end(); it++) {
                 if (it != arg.begin())
                     ss << ", ";
-                ss << jsonStringifyFloating(*it);
+                ss << jsonStringifyNumber(*it);
             }
             ss << "]";
         } else {
-            ss << arg;
+            ss << jsonStringifyNumber(arg);
         }
     }, value);
     return ss.str();
