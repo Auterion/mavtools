@@ -1,12 +1,20 @@
 # mavtools (mavencode / mavdecode)
 
-Command line tools to encode / decode binary mavlink into a JSON format. 
+Command line tools to encode / decode binary mavlink into a JSON format.
+
+The tools are built on top of [libmav](https://github.com/Auterion/libmav), and are mostly used for debugging purposes.
 
 ## Installation
 
 `mavencode` and `mavdecode` are binaries without any dependencies. 
 
 You can download the binaries from the releases.
+
+Or, do it with oneline:
+
+```bash
+curl -L https://github.com/Auterion/mavtools/releases/latest/download/mavtools-linux-gnu-x86_64.tar.gz | tar xz -C /tmp && sudo cp /tmp/install/bin/* /usr/local/bin
+```
 
 ## Usage
 
