@@ -1,0 +1,34 @@
+name: Build and publish new version to S3
+on:
+  release:
+    types:
+      - published
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+            submodules: 'recursive'
+
+      - name: Build tools
+        run: |
+          mkdir install
+          cmake -S . -B build
+          cmake --build build
+          cmake --install build --prefix install
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: mavtools-linux-gnu-x86_64
+          path: install/bin
+
+
+
