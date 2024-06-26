@@ -1,0 +1,12 @@
+[submodule "libmav"]
+	path = dependencies/libmav
+	url = https://github.com/Auterion/libmav.git
+[submodule "mavlink"]
+	path = dependencies/mavlink
+	url = https://github.com/mavlink/mavlink.git
+[submodule "dependencies/args"]
+	path = dependencies/args
+	url = git@github.com:Taywee/args.git
+[submodule "dependencies/incbin"]
+	path = dependencies/incbin
+	url = git@github.com:graphitemaster/incbin.git
