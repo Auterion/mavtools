@@ -23,6 +23,8 @@ jobs:
           cmake -S . -B build
           cmake --build build
           cmake --install build --prefix install
+          chmod +x install/bin/mavdecode
+          chmod +x install/bin/mavencode
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -30,5 +32,11 @@ jobs:
           name: mavtools-linux-gnu-x86_64
           path: install/bin
 
-
+      - name: Upload release artifact
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: github.event_name == 'release'
+        run: |
+          tar czf mavtools-linux-gnu-x86_64.tar.gz install/bin
+          gh release upload ${{github.event.release.tag_name}} mavtools-linux-gnu-x86_64.tar.gz --clobber      
 
